@@ -9,6 +9,7 @@ import android.graphics.Point;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -139,9 +140,14 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.MenuItem;
+//public  class superActivity extends
 
-
-public class MapActivity extends FragmentActivity implements  OnMarkerClickListener, OnMapReadyCallback{
+public class MapActivity extends AppCompatActivity implements  OnMarkerClickListener, OnMapReadyCallback{
 
     // variables for popup window
     private Marker mMarker;
@@ -149,6 +155,9 @@ public class MapActivity extends FragmentActivity implements  OnMarkerClickListe
     private int mWidth;
     private int mHeight;
     //______________________________________
+
+    private DrawerLayout mDrawer;
+    private ActionBarDrawerToggle mToggle;
 
 
     private GoogleMap mMap;
@@ -158,25 +167,111 @@ public class MapActivity extends FragmentActivity implements  OnMarkerClickListe
     Double temp[] = new Double[500];
     Double alpha[] = new Double[500];
     LatLng latLng[] = new LatLng[500];
-    Graph tempGraph[] = new Graph[500];//
-    Graph humidityGraph[] = new Graph[500];//
+    Graph tempGraph[] = new Graph[500];
+    Graph humidityGraph[] = new Graph[500];
     int color[] = new int[500];
-
+    //    String s = getIntent().getStringExtra("EXTRA_SESSION_ID");
+    String selectedPara = "Temperature";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        String s = getIntent().getStringExtra("EXTRA_SESSION_ID");
+        String s2 = "2";
+        if (s != null){
+            char first = s.charAt(0);
+//            Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
+            if (first == '2') {
+                selectedPara = "Humidity";
+            } else {
+                selectedPara = "Temperature";
+            }
+        }
+
         setContentView(R.layout.activity_map);
 
         getGraphData();
+
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        mDrawer = findViewById(R.id.drawer);
+        mToggle = new ActionBarDrawerToggle(this, mDrawer, R.string.open, R.string.close);
+        mDrawer.addDrawerListener(mToggle);
+        mToggle.syncState();
+        NavigationView nvDrawer = (NavigationView) findViewById(R.id.nv);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        setupDrawerContent(nvDrawer);
+
+
+//        Intent in=getIntent();
+//        Bundle bundle = getIntent().getExtras();
+//        if (bundle != null) {
+//            int value = bundle.getInt("myData", 2);
+//            Log.v("in mainactivity", "" + value);
+//            Toast.makeText(getApplicationContext(), value, Toast.LENGTH_SHORT).show();
+//        }
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        if(mToggle.onOptionsItemSelected(item)){
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void selectItemDrawer(MenuItem menuItem){
+        android.support.v4.app.Fragment myFragment = null;
+        Class fragmentClass;
+
+        switch (menuItem.getItemId()){
+            case R.id.param:
+                fragmentClass = Fragment1.class;
+                break;
+//            case R.id.Thresholds:
+//                fragmentClass = Fragment2.class;
+//                break;
+//            case R.id.Nodes:
+//                fragmentClass = Settings.class;
+//                break;
+            case R.id.download:
+                fragmentClass = Fragment3.class;
+                break;
+            default:
+                fragmentClass = MapActivity.class;
+                break;
+        }
+        try {
+            myFragment = (android.support.v4.app.Fragment)fragmentClass.newInstance();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+
+        }
+        android.support.v4.app.FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.flcontent, myFragment).commit();
+        menuItem.setChecked(true);
+        setTitle(menuItem.getTitle());
+        mDrawer.closeDrawers();
+
+
+
+    }
+    private void setupDrawerContent(NavigationView navigationView){
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                selectItemDrawer(item);
+                return true;
+            }
+        });
     }
 
     public void getGraphData(){
-        FirebaseDatabase.getInstance().getReference().child("Graph").child("Temperature").addValueEventListener(new ValueEventListener() {
+        FirebaseDatabase.getInstance().getReference().child("Graph").child(selectedPara).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 int i = 1;
@@ -193,21 +288,21 @@ public class MapActivity extends FragmentActivity implements  OnMarkerClickListe
             }
         });
 
-        FirebaseDatabase.getInstance().getReference().child("Graph").child("Humidity").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                int i = 1;
-                for(DataSnapshot snapshot : dataSnapshot.getChildren()){
-                    Graph graph = snapshot.getValue(Graph.class);
-                    humidityGraph[i] = graph;
-                    i++;
-                }
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+//        FirebaseDatabase.getInstance().getReference().child("Graph").child("Humidity").addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                int i = 1;
+//                for(DataSnapshot snapshot : dataSnapshot.getChildren()){
+//                    Graph graph = snapshot.getValue(Graph.class);
+//                    humidityGraph[i] = graph;
+//                    i++;
+//                }
+//            }
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        });
     }
 
     public int getColorFromReading(double temp, double alpha){
@@ -296,7 +391,9 @@ public class MapActivity extends FragmentActivity implements  OnMarkerClickListe
 
     /** Called when the user clicks a marker. */
 
+
     public boolean onMarkerClick(final Marker marker) {
+
         int temp = Integer.parseInt(marker.getTitle());
         System.out.println("temp -> " + temp);
         Intent I = new Intent(MapActivity.this, Popup.class);
@@ -334,7 +431,7 @@ public class MapActivity extends FragmentActivity implements  OnMarkerClickListe
         DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
         int width = (int)(0*dm.widthPixels);
-        int height = (int)(0.21*dm.heightPixels);
+        int height = (int)(0.25*dm.heightPixels);
         View mainView = getLayoutInflater().inflate(R.layout.activity_database, null);
 
         PopupWindow popupWindow = new PopupWindow(mainView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,true);
@@ -469,7 +566,7 @@ public class MapActivity extends FragmentActivity implements  OnMarkerClickListe
 //        color[15]  = Color.argb(255,0,255,0);
 //        color[16]  = Color.argb(255,255,255,0);
 
-        FirebaseDatabase.getInstance().getReference().child("Reading").child("Temperature").addValueEventListener(new ValueEventListener() {
+        FirebaseDatabase.getInstance().getReference().child("Reading").child(selectedPara).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Integer i = 1;
@@ -502,11 +599,11 @@ public class MapActivity extends FragmentActivity implements  OnMarkerClickListe
                         }
 
                         mMap.clear();
-                        for (int j = 1; j < i; j++) {
+                        for (int j = 1; j < 16; j++) {
 //                            mMap.addMarker(new MarkerOptions().position(latLng[j]).title("Pos: " + j + ", Lat: " + latLng[j].latitude + ", Lng: " + latLng[j].longitude));
 
                             MarkerOptions mo = new MarkerOptions().position(latLng[j]).title(String.valueOf(j));
-                            //mo.icon(BitmapDescriptorFactory.fromResource(R.drawable.target));
+//                            mo.icon(BitmapDescriptorFactory.fromResource(R.drawable.target));
                             mMap.addMarker(mo);
 
                         }

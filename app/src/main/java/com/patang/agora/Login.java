@@ -3,9 +3,12 @@ package com.patang.agora;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -14,21 +17,47 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class Login extends AppCompatActivity implements View.OnClickListener {
 
-
+    DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("User");
     EditText editTextEmail;
     EditText editTextPassword;
     private FirebaseAuth mAuth;
+    private FirebaseAuth firebaseAuth;
 
     ProgressBar progressbar;
+    public String Email;
+    SignInButton button;
+
+
+
+    // Views
+
 
 
     @Override
@@ -46,21 +75,28 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
 
         //progressDialog = new ProgressDialog(this);
         findViewById(R.id.textViewSignin).setOnClickListener(this);
+
+
+
+        firebaseAuth = FirebaseAuth.getInstance();
+        if (firebaseAuth.getCurrentUser()!= null)
+        {
+            finish();
+            Intent intent = new Intent(Login.this, MapActivity.class);
+            startActivity(intent);
+
+        }
+
+
     }
+
+
 
     private void registerUser(){
         String email = editTextEmail.getText().toString().trim();
+        Email=email;
         String password = editTextPassword.getText().toString().trim();
 
-       /* if (TextUtils.isEmpty(email)){
-            Toast.makeText(this,"Please enter email", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (TextUtils.isEmpty(password)){
-            Toast.makeText(this,"Please enter password", Toast.LENGTH_SHORT).show();
-            return;
-        }*/
 
         //checking if email area is empty or not
         if (email.isEmpty())
@@ -96,6 +132,11 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         progressbar.setVisibility(View.GONE);
                         if (task.isSuccessful()){
+                            User user = new User(Email,"simple");
+                            //String userId= Email.replace("@","");
+                            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                            // userId= userId.replace(".","");
+                            userRef.child(userId).setValue(user);
                             Toast.makeText(getApplicationContext(), "Registered Successfully.", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(Login.this, MapActivity.class);
                             startActivity(intent);
@@ -125,97 +166,9 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
         {
             startActivity(new Intent(this, signin.class));
         }
+
     }
 
 }
 
 
-//package com.patang.agora;
-//
-//import android.app.ProgressDialog;
-//import android.content.Intent;
-//import android.support.annotation.NonNull;
-//import android.support.v7.app.AppCompatActivity;
-//import android.os.Bundle;
-//import android.text.TextUtils;
-//import android.view.View;
-//import android.widget.Button;
-//import android.widget.EditText;
-//import android.widget.ProgressBar;
-//import android.widget.TextView;
-//import android.widget.Toast;
-//
-//import com.google.android.gms.tasks.OnCompleteListener;
-//import com.google.android.gms.tasks.Task;
-//import com.google.firebase.auth.AuthResult;
-//import com.google.firebase.auth.FirebaseAuth;
-//
-//public class Login extends AppCompatActivity implements View.OnClickListener {
-//
-//    private Button buttonRegister;
-//    private EditText editTextEmail;
-//    private EditText editTextPassword;
-//    private TextView textViewSignin;
-//
-//    private ProgressDialog progressDialog;
-//
-//    private FirebaseAuth firebaseAuth;
-//
-//    @Override
-//    protected void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_login);
-//
-//        firebaseAuth = FirebaseAuth.getInstance();
-//
-//        progressDialog = new ProgressDialog(this);
-//
-//        buttonRegister = (Button) findViewById(R.id.buttonRegister);
-//
-//        editTextEmail = (EditText) findViewById(R.id.editTextEmail);
-//        editTextPassword = (EditText) findViewById(R.id.editTextPassword);
-//
-//        textViewSignin = (TextView) findViewById(R.id.textViewSignin);
-//
-//        buttonRegister.setOnClickListener(this);
-//        textViewSignin.setOnClickListener(this);
-//    }
-//
-//    private void registerUser(){
-//        String email = editTextEmail.getText().toString().trim();
-//        String password = editTextPassword.getText().toString().trim();
-//
-//        if (TextUtils.isEmpty(email)){
-//            Toast.makeText(this,"Please enter email", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//
-//        if (TextUtils.isEmpty(password)){
-//            Toast.makeText(this,"Please enter password", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//
-//        progressDialog.setMessage("Registering User...");
-//        progressDialog.show();
-//
-//        firebaseAuth.createUserWithEmailAndPassword(email,password)
-//                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-//                    @Override
-//                    public void onComplete(@NonNull Task<AuthResult> task) {
-//                        if (task.isSuccessful()){
-//                            Toast.makeText(Login.this, "Registered Successfully", Toast.LENGTH_SHORT).show();
-//                        } else {
-//                            Toast.makeText(Login.this, "Could not Register", Toast.LENGTH_SHORT).show();
-//                        }
-//                    }
-//                });
-//    }
-//
-//    @Override
-//    public void onClick(View view){
-//        if (view == buttonRegister){
-//            registerUser();
-//        }
-//    }
-//
-//}

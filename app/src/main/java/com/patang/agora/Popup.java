@@ -21,9 +21,6 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
-/**
- * Created by Saad Jamal on 28-Apr-18.
- */
 
 public class Popup extends MapActivity {
     private static final String TAG = "MainActivity";

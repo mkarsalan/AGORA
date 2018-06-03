@@ -18,7 +18,7 @@ public class Practice extends AppCompatActivity{
         button2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(getApplicationContext(), "Hello", Toast.LENGTH_SHORT).show();
+              //  Toast.makeText(getApplicationContext(), "Hello", Toast.LENGTH_SHORT).show();
 
                 Intent intent = new Intent(Practice.this, Login.class);
 //                internt.putExtra("Hi Zainab :)", result);

@@ -7,5 +7,8 @@
     <color name="darkgray">#6c6c6c</color>
     <color name="transparentgrey">#80000000</color>
     <color name="transparent">#00000000</color>
+    <color name="spacegrey">#2e2e2e</color>
+    <color name="red">#930808</color>
+    <color name="fragmentColor">#84282626</color>
 
 </resources>

@@ -2,8 +2,8 @@
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
 <item android:id="@+id/param" android:title="Parameter" />
-    <item android:id="@+id/Thresholds" android:title="Thresholds" />
-    <item android:id="@+id/Nodes" android:title="Nodes Visible" />
+    <!--<item android:id="@+id/Thresholds" android:title="Thresholds" />-->
+    <!--<item android:id="@+id/Nodes" android:title="Nodes Visible" />-->
     <item android:id="@+id/download" android:title="Download Data" />
 
 
